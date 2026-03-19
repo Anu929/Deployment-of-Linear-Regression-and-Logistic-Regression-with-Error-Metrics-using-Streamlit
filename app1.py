@@ -11,7 +11,7 @@ on a dataset. It evaluates model performance using Mean Squared Error (MSE) and 
 """)
 uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
 if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
+    df = pd.read_csv("mobile_usage_behavioral_analysis.csv")
     st.subheader("📂 Dataset Preview")
     st.dataframe(df)
     columns = df.columns.tolist()

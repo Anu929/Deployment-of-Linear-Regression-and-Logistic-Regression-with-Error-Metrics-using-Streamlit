@@ -29,6 +29,7 @@ if uploaded_file is not None:
     r2 = r2_score(y_test, y_pred)
     st.write(f"**Mean Squared Error:** {mse}")
     st.write(f"**R² Score:** {r2}")
+    st.line_chart(df)
     fig, ax = plt.subplots()
     ax.scatter(X_test, y_test, label="Actual")
     ax.plot(X_test, y_pred, color='red', label="Predicted")

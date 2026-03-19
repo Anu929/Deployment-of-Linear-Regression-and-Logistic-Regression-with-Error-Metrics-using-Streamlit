@@ -3,43 +3,74 @@ import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, r2_score, accuracy_score
-st.title("📊 Regression Analysis using Streamlit")
-st.markdown("""
-This application demonstrates the implementation of Linear Regression and Logistic Regression 
-on a dataset. It evaluates model performance using Mean Squared Error (MSE) and R² score.
-""")
-uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
-if uploaded_file is not None:
-    df = pd.read_csv("mobile_usage_behavioral_analysis.csv")
-    st.subheader("📂 Dataset Preview")
-    st.dataframe(df)
+from sklearn.metrics import mean_squared_error, accuracy_score
+
+st.title("📊 Mobile Usage Behavioral Analysis")
+st.write("Linear Regression & Logistic Regression with Error Metrics")
+
+# Upload dataset
+file = st.file_uploader("Upload CSV file", type=["csv"])
+
+if file is not None:
+    df = pd.read_csv(file)
+
+    st.subheader("Dataset Preview")
+    st.write(df.head())
+
+    # Select features and target
     columns = df.columns.tolist()
-    x_col = st.selectbox("Select Feature (X)", columns)
-    y_col = st.selectbox("Select Target (Y)", columns)
-    X = df[[x_col]]
-    y = df[y_col]
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-    st.header("📈 Linear Regression")
-    linear_model = LinearRegression()
-    linear_model.fit(X_train, y_train)
-    y_pred = linear_model.predict(X_test)
-    mse = mean_squared_error(y_test, y_pred)
-    r2 = r2_score(y_test, y_pred)
-    st.write(f"**Mean Squared Error:** {mse}")
-    st.write(f"**R² Score:** {r2}")
-    st.line_chart(df)
-    fig, ax = plt.subplots()
-    ax.scatter(X_test, y_test, label="Actual")
-    ax.plot(X_test, y_pred, color='red', label="Predicted")
-    ax.legend()
-    st.pyplot(fig)
-    st.header("📊 Logistic Regression")
-    if y.nunique() <= 10:
-        log_model = LogisticRegression()
-        log_model.fit(X_train, y_train)
-        y_pred_log = log_model.predict(X_test)
+
+    feature_cols = st.multiselect("Select Feature Columns", columns)
+    target_col = st.selectbox("Select Target Column", columns)
+
+    if feature_cols and target_col:
+
+        X = df[feature_cols]
+        y = df[target_col]
+
+        # Convert categorical to numeric
+        X = pd.get_dummies(X)
+        if y.dtype == 'object':
+            y = pd.factorize(y)[0]
+
+        # Split data
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42
+        )
+
+        # ------------------ LINEAR REGRESSION ------------------
+        st.subheader("📈 Linear Regression")
+
+        lr = LinearRegression()
+        lr.fit(X_train, y_train)
+
+        y_pred_lr = lr.predict(X_test)
+
+        mse_lr = mean_squared_error(y_test, y_pred_lr)
+        rmse_lr = np.sqrt(mse_lr)
+
+        st.write("Mean Squared Error (MSE):", mse_lr)
+        st.write("Root Mean Squared Error (RMSE):", rmse_lr)
+
+        # ------------------ LOGISTIC REGRESSION ------------------
+        st.subheader("📉 Logistic Regression")
+
+        # Convert target to binary if needed
+        y_binary = (y > y.mean()).astype(int)
+
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y_binary, test_size=0.2, random_state=42
+        )
+
+        logr = LogisticRegression(max_iter=1000)
+        logr.fit(X_train, y_train)
+
+        y_pred_log = logr.predict(X_test)
+
+        mse_log = mean_squared_error(y_test, y_pred_log)
+        rmse_log = np.sqrt(mse_log)
         acc = accuracy_score(y_test, y_pred_log)
-        st.write(f"**Accuracy:** {acc}")
-    else:
-        st.warning("Target is not suitable for Logistic Regression (needs categorical data)")
+
+        st.write("Accuracy:", acc)
+        st.write("Mean Squared Error (MSE):", mse_log)
+        st.write("Root Mean Squared Error (RMSE):", rmse_log)
